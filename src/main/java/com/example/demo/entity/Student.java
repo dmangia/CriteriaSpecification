@@ -1,24 +1,13 @@
 package com.example.demo.entity;
 
-import java.time.LocalDate;
-import java.util.Date;
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
+
+import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -33,7 +22,8 @@ public class Student {
     private String name;
 
     @Column()
-    private LocalDate created;
+    @NonNull
+    private LocalDateTime created;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id", referencedColumnName = "id")
