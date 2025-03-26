@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.SearchRequestDto;
-import org.hibernate.query.criteria.internal.predicate.InPredicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -9,11 +8,12 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class FilterSpecification<T> {
@@ -35,13 +35,16 @@ public class FilterSpecification<T> {
             List<Predicate> predicatesAND = new ArrayList<>();
             List<Predicate> predicatesOR = new ArrayList<>();
             Predicate pred=null;
+            // Definisci il formato che corrisponde alla stringa
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
             for (SearchRequestDto requestDto : searchRequestDtos) {
                 System.out.println(requestDto.getOperation());
 
                 switch (requestDto.getOperation()) {
                     case EQUAL:
                         if (requestDto.getTypeCase()==SearchRequestDto.TypeCase.DATE)
-                            pred = criteriaBuilder.equal(root.get(requestDto.getColumn()), LocalDate.parse(requestDto.getValue()));
+                            pred = criteriaBuilder.equal(root.get(requestDto.getColumn()), LocalDateTime.parse(requestDto.getValue(), formatter));
                         else  pred = criteriaBuilder.equal(root.get(requestDto.getColumn()), requestDto.getValue());
                         if (requestDto.getOrCase()) predicatesOR.add(pred);
                         else predicatesAND.add(pred);
@@ -67,15 +70,16 @@ public class FilterSpecification<T> {
                         break;
                     case GREATER_THAN:
                         if (requestDto.getTypeCase()==SearchRequestDto.TypeCase.DATE)
-                            pred = criteriaBuilder.greaterThan(root.get(requestDto.getColumn()), LocalDate.parse(requestDto.getValue()));
+                            pred = criteriaBuilder.greaterThan(root.get(requestDto.getColumn()), LocalDateTime.parse(requestDto.getValue(), formatter));
                         else  pred = criteriaBuilder.greaterThan(root.get(requestDto.getColumn()), requestDto.getValue());
                         if (requestDto.getOrCase()) predicatesOR.add(pred);
                         else predicatesAND.add(pred);
 
                         break;
+
                     case GREATER_EQ_THAN:
                         if (requestDto.getTypeCase()==SearchRequestDto.TypeCase.DATE)
-                            pred = criteriaBuilder.greaterThanOrEqualTo(root.get(requestDto.getColumn()), LocalDate.parse(requestDto.getValue()));
+                            pred = criteriaBuilder.greaterThanOrEqualTo(root.get(requestDto.getColumn()), LocalDateTime.parse(requestDto.getValue(), formatter));
                         else  pred = criteriaBuilder.greaterThanOrEqualTo(root.get(requestDto.getColumn()), requestDto.getValue());
                         if (requestDto.getOrCase()) predicatesOR.add(pred);
                         else predicatesAND.add(pred);
@@ -83,7 +87,7 @@ public class FilterSpecification<T> {
                         break;
                     case LESS_EQ_THAN:
                         if (requestDto.getTypeCase()==SearchRequestDto.TypeCase.DATE)
-                            pred = criteriaBuilder.lessThan(root.get(requestDto.getColumn()), LocalDate.parse(requestDto.getValue()));
+                            pred = criteriaBuilder.lessThan(root.get(requestDto.getColumn()), LocalDateTime.parse(requestDto.getValue(), formatter));
                         else  pred = criteriaBuilder.lessThan(root.get(requestDto.getColumn()), requestDto.getValue());
                         if (requestDto.getOrCase()) predicatesOR.add(pred);
                         else predicatesAND.add(pred);
@@ -105,8 +109,8 @@ public class FilterSpecification<T> {
                         String[] boundaryValues = requestDto.getValue().split(",");
                         Predicate between = null;
                         if (requestDto.getTypeCase()==SearchRequestDto.TypeCase.DATE) between =
-                                criteriaBuilder.between(root.get(requestDto.getColumn()), LocalDate.parse(boundaryValues[0]),
-                                        LocalDate.parse(boundaryValues[1]));
+                                criteriaBuilder.between(root.get(requestDto.getColumn()), LocalDateTime.parse(boundaryValues[0], formatter),
+                                        LocalDateTime.parse(boundaryValues[1], formatter));
                         else between =
                                 criteriaBuilder.between(root.get(requestDto.getColumn()),
                                         Integer.parseInt(boundaryValues[0]), Integer.parseInt(boundaryValues[1]));
@@ -120,7 +124,7 @@ public class FilterSpecification<T> {
 
                         break;
                     default:
-                        throw new IllegalArgumentException("Unexpected Value for Operation: " + requestDto.getOperation());
+                        throw new IllegalArgumentException("Errore, valore inaspettato per operazione: " + requestDto.getOperation());
                 }
             }
 
